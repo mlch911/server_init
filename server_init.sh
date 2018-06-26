@@ -1,17 +1,17 @@
 yum -y install wget nano
 yum -y update
 github="https://git.mluoc.tk/mlch911/server_init/raw/branch/master"
-$1="/root/.ssh"
-$2="authorized_keys"
+dir="/root/.ssh"
+file="authorized_keys"
 cd /root
 wget wget --no-check-certificate -qO- ${github}/ssh_pub_keys
 
-if test ! -e ${$1}
-	then mkdir ${$1}
+if test ! -e ${dir}
+	then mkdir ${dir}
 	chmod 700 $1
 fi
-if test ! -e ${$1}/${$2}
-	then touch ${$1}/${$2}
-	chmod 600 ${$1}/${$2}
+if test ! -e ${dir}/${file}
+	then touch ${dir}/${file}
+	chmod 600 ${dir}/${file}
 fi
 echo /root/ssh_pub_keys >> /root/.ssh/authorized_keys
