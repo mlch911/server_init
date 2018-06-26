@@ -11,6 +11,7 @@ if test ! -e ${$1}
 	chmod 700 $1
 fi
 if test ! -e ${$1}/${$2}
+	then touch ${$1}/${$2}
 	chmod 600 ${$1}/${$2}
 fi
 echo /root/ssh_pub_keys >> /root/.ssh/authorized_keys
