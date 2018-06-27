@@ -14,4 +14,5 @@ if test ! -e ${dir}/${file}
 	then touch ${dir}/${file}
 	chmod 600 ${dir}/${file}
 fi
-echo /root/ssh_pub_keys >> /root/.ssh/authorized_keys
+cat /root/ssh_pub_keys | while read line; do echo ${line} >> ${dir}/${file}
+# echo /root/ssh_pub_keys >> ${dir}/${file}
