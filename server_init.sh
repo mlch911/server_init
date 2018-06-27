@@ -4,7 +4,7 @@ github="https://git.mluoc.tk/mlch911/server_init/raw/branch/master"
 dir="/root/.ssh"
 file="authorized_keys"
 cd /root
-wget wget --no-check-certificate -qO- ${github}/ssh_pub_keys
+wget --no-check-certificate -qO- -O ssh_pub_keys ${github}/ssh_pub_keys
 
 if test ! -e ${dir}
 	then mkdir ${dir}
@@ -14,8 +14,4 @@ if test ! -e ${dir}/${file}
 	then touch ${dir}/${file}
 	chmod 600 ${dir}/${file}
 fi
-# cat /root/ssh_pub_keys | while read line; do echo ${line} >> ${dir}/${file} ; done
-For i in  `cat /root/ssh_pub_keys`
-do
-echo $i >> "${dir}/${file}"
-# echo /root/ssh_pub_keys >> ${dir}/${file}
+cat /root/ssh_pub_keys | while read line; do echo ${line} >> ${dir}/${file} ; done
