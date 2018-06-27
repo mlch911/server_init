@@ -17,5 +17,5 @@ fi
 # cat /root/ssh_pub_keys | while read line; do echo ${line} >> ${dir}/${file} ; done
 For i in  `cat /root/ssh_pub_keys`
 do
-echo $i >> ${dir}/${file}
+echo $i >> "${dir}/${file}"
 # echo /root/ssh_pub_keys >> ${dir}/${file}
