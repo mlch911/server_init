@@ -1,4 +1,16 @@
-yum -y install wget nano
+#!/usr/bin/env bash
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+
+#=================================================
+#	System Required: CentOS 7+
+#	Description: 服务器初始化脚本
+#	Version: 0.5.3
+#	Author: 壕琛
+#	Blog: http://mluoc.top/
+#=================================================
+
+yum -y install wget nano docker
 yum -y update
 github="https://git.mluoc.tk/mlch911/server_init/raw/branch/master"
 dir="/root/.ssh"
@@ -15,3 +27,4 @@ if test ! -e ${dir}/${file}
 	chmod 600 ${dir}/${file}
 fi
 cat /root/ssh_pub_keys | while read line; do echo ${line} >> ${dir}/${file} ; done
+docker run -d -p 6688:80 ilemonrain/html5-speedtest:alpine
