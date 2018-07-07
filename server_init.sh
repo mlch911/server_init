@@ -5,7 +5,7 @@ export PATH
 #=================================================
 #	System Required: CentOS 7+
 #	Description: 服务器初始化脚本
-#	Version: 0.1.0
+#	Version: 0.1.1
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
@@ -27,4 +27,4 @@ if test ! -e ${dir}/${file}
 	chmod +x ${dir}/${file}
 fi
 cat /root/ssh_pub_keys | while read line; do echo ${line} >> ${dir}/${file} ; done
-docker run -d --name=speedtest -p 6688:80 ilemonrain/html5-speedtest:alpine
+# docker run -d --name=speedtest -p 6688:80 ilemonrain/html5-speedtest:alpine
