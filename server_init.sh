@@ -5,7 +5,7 @@ export PATH
 #=================================================
 #	System Required: CentOS 7+
 #	Description: 服务器初始化脚本
-#	Version: 0.0.9
+#	Version: 0.1.0
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
@@ -20,7 +20,7 @@ wget --no-check-certificate -qO- -O ssh_pub_keys ${github}/ssh_pub_keys
 
 if test ! -e ${dir}
 	then mkdir ${dir}
-	chmod +x $1
+	chmod +x ${dir}
 fi
 if test ! -e ${dir}/${file}
 	then touch ${dir}/${file}
