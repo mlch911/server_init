@@ -5,12 +5,12 @@ export PATH
 #=================================================
 #	System Required: CentOS 7+
 #	Description: 服务器初始化脚本
-#	Version: 0.1.1
+#	Version: 0.1.2
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
 
-yum -y install wget nano docker
+yum -y install wget nano docker git
 yum -y update
 github="https://git.mluoc.tk/mlch911/server_init/raw/branch/master"
 dir="/root/.ssh"
