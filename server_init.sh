@@ -34,7 +34,7 @@ read -p "是否更改ssh端口 :(y/n)" input_a
 if [ ${input_a} == "y" ] ;then
 	cd /etc/ssh/
 	read -p "新的ssh端口 :" ssh_port
-	sed -i "17c Port ${ssh_port}" ssh_config
+	sed -i "17c Port ${ssh_port}" sshd_config
 	read -p "修改完成，是否开放防火墙 :(y/n)" input_b
 	if [ ${input_b} == "y" ] ;then
 		echo -e " 请选择防火墙类型 :
