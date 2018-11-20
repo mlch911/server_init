@@ -5,7 +5,7 @@ export PATH
 #=================================================
 #	System Required: CentOS 7+
 #	Description: 服务器初始化脚本
-#	Version: 0.1.4
+#	Version: 0.1.5
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
@@ -18,14 +18,14 @@ file="authorized_keys"
 cd /root
 wget --no-check-certificate -qO- -O ssh_pub_keys ${github}/ssh_pub_keys
 
-if test ! -e ${dir}
-	then mkdir ${dir}
-	chmod +x ${dir}
-fi
-if test ! -e ${dir}/${file}
-	then touch ${dir}/${file}
-	chmod +x ${dir}/${file}
-fi
+# if test ! -e ${dir}
+# 	then mkdir ${dir}
+# 	chmod +x ${dir}
+# fi
+# if test ! -e ${dir}/${file}
+# 	then touch ${dir}/${file}
+# 	chmod +x ${dir}/${file}
+# fi
 cat /root/ssh_pub_keys | while read line; do echo ${line} >> ${dir}/${file} ; done
 # docker run -d --name=speedtest -p 6688:80 ilemonrain/html5-speedtest:alpine
 
