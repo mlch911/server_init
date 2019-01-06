@@ -5,17 +5,18 @@ export PATH
 #=================================================
 #	System Required: CentOS 7+
 #	Description: 服务器初始化脚本
-#	Version: 0.1.5
+#	Version: 0.1.6
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
 
-yum -y install wget nano docker git unzip
+yum -y install wget nano git unzip
 yum -y update
 github="https://git.mluoc.tk/mlch911/server_init/raw/branch/master"
 dir="/root/.ssh"
 file="authorized_keys"
 cd /root
+mkdir ssh_pub_keys
 wget --no-check-certificate -qO- -O ssh_pub_keys ${github}/ssh_pub_keys
 
 # if test ! -e ${dir}
