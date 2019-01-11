@@ -5,10 +5,22 @@ export PATH
 #=================================================
 #	System Required: CentOS 7+
 #	Description: 服务器初始化脚本
-#	Version: 0.1.9
+#	Version: 0.2.0
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
+
+ftp_init(){
+	read -p "请输入该服务器的ip或域名 :" server_ip
+	read -p "请确认该服务器的ip或域名是否为 ${server_ip} :(y/n)" input_f
+	if [ ${input_f} == "y" ] ;then
+		docker run -d -v /root/vsftpd:/home/vsftpd -p 20:20 -p 21:21 -p 47400-47470:47400-47470 -e FTP_USER=mlch911 -e FTP_PASS=mlch1995123 -e PASV_ADDRESS=${server_ip} --name ftp --restart=always bogem/ftp
+	elif [ ${input_f} == "n" ] ;then
+		return 1
+	else
+		ftp_init
+	fi
+}
 
 yum -y install wget nano git unzip
 yum -y update
@@ -71,15 +83,3 @@ fi
 
 clear
 echo -e "Server initialzation finished!"
-
-ftp_init(){
-	read -p "请输入该服务器的ip或域名 :" server_ip
-	read -p "请确认该服务器的ip或域名是否为 ${server_ip} :(y/n)" input_f
-	if [ ${input_f} == "y" ] ;then
-		docker run -d -v /root/vsftpd:/home/vsftpd -p 20:20 -p 21:21 -p 47400-47470:47400-47470 -e FTP_USER=mlch911 -e FTP_PASS=mlch1995123 -e PASV_ADDRESS=${server_ip} --name ftp --restart=always bogem/ftp
-	elif [ ${input_f} == "n" ] ;then
-		return 1
-	else
-		ftp_init
-	fi
-}
