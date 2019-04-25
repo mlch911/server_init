@@ -5,7 +5,7 @@ export PATH
 #=================================================
 #	System Required: CentOS 7+
 #	Description: 服务器初始化脚本
-#	Version: 0.2.2
+#	Version: 0.3.0
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
@@ -69,7 +69,7 @@ read -p "是否更改ssh端口 :(y/n)" input_a
 if [ ${input_a} == "y" ] ;then
 	cd /etc/ssh/
 	read -p "新的ssh端口 :" ssh_port
-	sed -i "17c Port 21" sshd_config
+	sed -i "17c Port ${ssh_port}" sshd_config
 	read -p "修改完成，是否开放防火墙 :(y/n)" input_b
 	if [ ${input_b} == "y" ] ;then
 		echo -e " 请选择防火墙类型 :
@@ -78,8 +78,8 @@ if [ ${input_a} == "y" ] ;then
 		————————————————————————————————"
 		read -p "请输入数字 :" num
 		if [ ${num} == "1" ] ;then
-			firewall-cmd --permanent --zone=public --add-port=21/tcp
-			firewall-cmd --permanent --zone=public --add-port=21/udp
+			firewall-cmd --permanent --zone=public --add-port=${ssh_port}/tcp
+			firewall-cmd --permanent --zone=public --add-port=${ssh_port}/udp
 			firewall-cmd --reload
 		elif [ ${num} == "2" ] ;then
 			iptables -A INPUT -p tcp --dport 21 -j ACCEPT
