@@ -4,13 +4,14 @@ export PATH
 #=================================================
 #	System Required: CentOS 7+
 #	Description: 服务器初始化脚本
-#	Version: 0.3.0
+#	Version: 0.4.0
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
 
-sh_ver="0.3.0"
+sh_ver="0.4.0"
 github="https://git.mluoc.tk/mlch911/server_init/raw/branch/master"
+file="authorized_keys"
 
 Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Green_background_prefix="\033[42;37m" && Red_background_prefix="\033[41;37m" && Font_color_suffix="\033[0m"
 Info="${Green_font_prefix}[信息]${Font_color_suffix}"
@@ -25,23 +26,15 @@ start_menu(){
 	echo && echo -e " ssrpanel后端 一键安装管理脚本 ${Red_font_prefix}[v${sh_ver}]${Font_color_suffix}
 	  -- 壕琛小站 | ss.mluoc.tk --
 
-
 	 ${Green_font_prefix}0.${Font_color_suffix} 升级脚本
-	 ${Green_font_prefix}1.${Font_color_suffix} 安装依赖(只需执行一次，若重复执行会覆盖原有配置)
-	 ${Green_font_prefix}2.${Font_color_suffix} 服务器配置
-	 ${Green_font_prefix}3.${Font_color_suffix} 运行服务
+	 ${Green_font_prefix}1.${Font_color_suffix} 初始化
+	 ${Green_font_prefix}2.${Font_color_suffix} 更改ssh端口
+	 ${Green_font_prefix}3.${Font_color_suffix} 安装zsh
 	 ${Green_font_prefix}4.${Font_color_suffix} 开放防火墙
-	 ${Green_font_prefix}5.${Font_color_suffix} 查看log
-	 ${Green_font_prefix}6.${Font_color_suffix} 卸载全部
+	 ${Green_font_prefix}5.${Font_color_suffix} 待添加
+	 ${Green_font_prefix}6.${Font_color_suffix} 待添加
 	 ${Green_font_prefix}7.${Font_color_suffix} 退出脚本
 	————————————————————————————————" && echo
-
-		# check_status
-		# if [[ ${kernel_status} == "noinstall" ]]; then
-		# 	echo -e " 当前状态: ${Green_font_prefix}未安装${Font_color_suffix} 加速内核 ${Red_font_prefix}请先安装内核${Font_color_suffix}"
-		# else
-		# 	echo -e " 当前状态: ${Green_font_prefix}已安装${Font_color_suffix} ${_font_prefix}${kernel_status}${Font_color_suffix} 加速内核 , ${Green_font_prefix}${run_status}${Font_color_suffix}"
-		# fi
 
 		sh_new_ver=$(wget --no-check-certificate -qO- "${github}/server_init.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1)
 		if [[ ${sh_new_ver} != ${sh_ver} ]]; then
@@ -56,29 +49,29 @@ start_menu(){
 		Update_Shell
 		;;
 		1)
-		Install_Shell
+		Init_Shell
 		;;
 		2)
-		ServerSetup_Shell
+		SSH_port_change_Shell
 		;;
 		3)
-		Run_Shell
+		ZSH_install_Shell
 		;;
 		4)
 		Firewalld_Shell
 		;;
 		5)
-		Logs
+		start_menu
 		;;
 		6)
-		Uninstall
+		start_menu
 		;;
 		7)
 		exit 1
 		;;
 		*)
 		clear
-		echo -e "${Error}:请输入正确数字 [0-8]"
+		echo -e "${Error}:请输入正确数字 [0-7]"
 		sleep 2s
 		start_menu
 		;;
@@ -109,8 +102,126 @@ Update_Shell(){
 	fi
 }
 
+#初始化脚本
+Init_Shell(){
+	echo -e "安装必要组件"
+	yum -y install wget nano git unzip dokcer
+	yum -y update
+	echo -e "写入ssh公钥"
+	cd /root
+	mkdir .ssh
+	wget --no-check-certificate -qO- -O ssh_pub_keys ${github}/ssh_pub_keys
+}
 
+#更改ssh端口
+SSH_port_change_Shell(){
+	read -p "是否更改ssh端口 :(y/n)" input_a
+	if [ ${input_a} == "y" ] ;then
+		cd /etc/ssh/
+		read -p "新的ssh端口 :" ssh_port
+		sed -i "17c Port ${ssh_port}" sshd_config
+		read -p "修改完成，是否开放防火墙 :(y/n)" input_b
+		if [ ${input_b} == "y" ] ;then
+			echo -e " 请选择防火墙类型 :
+			${Green_font_prefix}1.${Font_color_suffix} firewalld
+			${Green_font_prefix}2.${Font_color_suffix} iptables
+			————————————————————————————————"
+			read -p "请输入数字 :" num
+			if [ ${num} == "1" ] ;then
+				firewall-cmd --permanent --zone=public --add-port=${ssh_port}/tcp
+				firewall-cmd --permanent --zone=public --add-port=${ssh_port}/udp
+				firewall-cmd --reload
+			elif [ ${num} == "2" ] ;then
+				iptables -A INPUT -p tcp --dport 21 -j ACCEPT
+				iptables -A INPUT -p udp --dport 21 -j ACCEPT
+				service iptables save
+				service iptables restart
+			fi
+		fi
+		read -p "是否重启ssh服务 :(y/n)" input_c
+		if [ ${input_c} == "y" ] ;then
+			systemctl restart sshd.service
+		fi
+		echo -e "ssh端口更改完成！"
+	fi
+}
 
+#zsh安装
+ZSH_install_Shell(){
+	read -p "是否安装zsh，输入n恢复默认shell :(y/n)" input_a
+	if [ ${input_a} == "y" ] ;then
+		yum -y install wget git nano
+		yum -y install epel-release && yum -y install zsh
+		chsh -s /bin/zsh
+		sh -c "$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)"
+		git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+		git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+		rm -rf ~/.zshrc && rm -rf ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+		wget -N --no-check-certificate ${github}/.zshrc -O ~/.zshrc
+		wget -N --no-check-certificate ${github}/zsh-autosuggestions.zsh -O ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+		source ~/.zshrc
+		echo -e "zsh安装完成！"
+	elif [ ${input_a} == "n" ] ;then
+		cat /etc/shells
+		chsh -s /bin/bash
+	fi
+}
+
+#开放防火墙
+Firewalld_Shell(){
+	clear
+	echo -e " 请选择防火墙类型 :
+	${Green_font_prefix}1.${Font_color_suffix} firewalld
+	${Green_font_prefix}2.${Font_color_suffix} iptables
+	————————————————————————————————"
+	read -p "请输入数字 :" num
+	if [ ${num} == "1" ] ;then
+		echo -e " firewalld :
+		${Green_font_prefix}1.${Font_color_suffix} 单端口
+		${Green_font_prefix}2.${Font_color_suffix} 端口段
+		————————————————————————————————"
+		read -p "请输入数字 :" num
+		if [ ${num} == "1" ] ;then
+			read -p " 开放防火墙端口为 :" port_a
+			firewall-cmd --permanent --zone=public --add-port=${port_a}/tcp
+			firewall-cmd --permanent --zone=public --add-port=${port_a}/udp
+			firewall-cmd --reload
+		elif [ ${num} == "2" ] ;then
+			read -p " 开放防火墙端口从 :" port_b
+			read -p " 开放防火墙端口到 :" port_c
+			firewall-cmd --permanent --zone=public --add-port=${port_b}-${port_c}/tcp
+			firewall-cmd --permanent --zone=public --add-port=${port_b}-${port_c}/udp
+			firewall-cmd --reload
+		fi
+	elif [ ${num} == "2" ] ;then
+		echo -e " iptables :
+		${Green_font_prefix}1.${Font_color_suffix} 单端口
+		${Green_font_prefix}2.${Font_color_suffix} 端口段
+		————————————————————————————————"
+		read -p "请输入数字 :" num
+		if [ ${num} == "1" ] ;then
+			read -p " 开放防火墙端口为 :" port_a
+			iptables -A INPUT -p tcp --dport ${port_a} -j ACCEPT
+			iptables -A INPUT -p udp --dport ${port_a} -j ACCEPT
+			service iptables save
+			service iptables restart
+		elif [ ${num} == "2" ] ;then
+			read -p " 开放防火墙端口从 :" port_b
+			read -p " 开放防火墙端口到 :" port_c
+			iptables -A INPUT -p tcp --dport ${port_b}:${port_c} -j ACCEPT
+			iptables -A INPUT -p udp --dport ${port_b}:${port_c} -j ACCEPT
+			service iptables save
+			service iptables restart
+		fi
+	fi
+	echo -e " ${Info} 开放防火墙运行完成！"
+	read -p "是否退出脚本 :(y/n)" firewalld_input
+	if [ ${firewalld_input} == "y" ] ;then
+		exit 1
+	fi
+	sleep 2s
+	start_menu
+}
 
 
 #############系统检测组件#############
