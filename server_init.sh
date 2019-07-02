@@ -4,12 +4,12 @@ export PATH
 #=================================================
 #	System Required: CentOS 7+
 #	Description: 服务器初始化脚本
-#	Version: 0.4.0
+#	Version: 0.4.1
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
 
-sh_ver="0.4.0"
+sh_ver="0.4.1"
 github="https://git.mluoc.tk/mlch911/server_init/raw/branch/master"
 file="authorized_keys"
 
@@ -110,7 +110,7 @@ Init_Shell(){
 	echo -e "写入ssh公钥"
 	cd /root
 	mkdir .ssh
-	wget --no-check-certificate -qO- -O ssh_pub_keys ${github}/ssh_pub_keys
+	cat <(curl -s -L ${github}/ssh_pub_keys) | while read line; do echo ${line} >> /root/.ssh/authorized_keys ; done
 }
 
 #更改ssh端口
