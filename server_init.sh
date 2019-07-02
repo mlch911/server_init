@@ -4,13 +4,13 @@ export PATH
 #=================================================
 #	System Required: CentOS 7+
 #	Description: 服务器初始化脚本
-#	Version: 0.4.1
+#	Version: 0.4.2
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
 
-sh_ver="0.4.1"
-github="https://git.mluoc.tk/mlch911/server_init/raw/branch/master"
+sh_ver="0.4.2"
+github="https://raw.githubusercontent.com/mlch911/server_init/master"
 file="authorized_keys"
 
 Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Green_background_prefix="\033[42;37m" && Red_background_prefix="\033[41;37m" && Font_color_suffix="\033[0m"
@@ -88,9 +88,9 @@ Update_Shell(){
 		read -p "(默认: y):" yn
 		[[ -z "${yn}" ]] && yn="y"
 		if [[ ${yn} == [Yy] ]]; then
-			wget -N --no-check-certificate ${github}/server_init.sh && chmod +x ss-node-script.sh
+			wget -N --no-check-certificate ${github}/server_init.sh && chmod +x server_init.sh
 			echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] ! 稍等片刻，马上运行 !"
-			bash ss-node-script.sh
+			bash server_init.sh
 		else
 			echo && echo "	已取消..." && echo
 			start_menu
@@ -105,12 +105,12 @@ Update_Shell(){
 #初始化脚本
 Init_Shell(){
 	echo -e "安装必要组件"
-	yum -y install wget nano git unzip dokcer
+	yum -y install wget nano git unzip docker
 	yum -y update
 	echo -e "写入ssh公钥"
 	cd /root
 	mkdir .ssh
-	cat <(curl -s -L ${github}/ssh_pub_keys) | while read line; do echo ${line} >> /root/.ssh/authorized_keys ; done
+	wget --no-check-certificate -qO- -O /root/.ssh/authorized_keys ${github}/ssh_pub_keys
 }
 
 #更改ssh端口
