@@ -4,12 +4,12 @@ export PATH
 #=================================================
 #	System Required: CentOS 7+
 #	Description: 服务器初始化脚本
-#	Version: 0.4.2
+#	Version: 0.4.3
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
 
-sh_ver="0.4.2"
+sh_ver="0.4.3"
 github="https://raw.githubusercontent.com/mlch911/server_init/master"
 file="authorized_keys"
 
@@ -105,7 +105,9 @@ Update_Shell(){
 #初始化脚本
 Init_Shell(){
 	echo -e "安装必要组件"
-	yum -y install wget nano git unzip docker
+	yum -y install wget nano git unzip dokcer
+	service docker start
+	systemctl enable docker
 	yum -y update
 	echo -e "写入ssh公钥"
 	cd /root
