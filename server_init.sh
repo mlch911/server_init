@@ -106,7 +106,7 @@ Update_Shell(){
 Init_Shell(){
 	echo -e "安装必要组件"
 	yum -y update
-	yum -y install wget nano git unzip dokcer htop grv
+	yum -y install wget nano git unzip dokcer htop grv mtr
 	service docker start
 	systemctl enable docker
 	echo -e "写入ssh公钥"
