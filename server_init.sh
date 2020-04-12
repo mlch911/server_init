@@ -4,12 +4,12 @@ export PATH
 #=================================================
 #	System Required: CentOS 7+
 #	Description: 服务器初始化脚本
-#	Version: 0.4.6
+#	Version: 0.4.7
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
 
-sh_ver="0.4.6"
+sh_ver="0.4.7"
 github="https://raw.githubusercontent.com/mlch911/server_init/master"
 file="authorized_keys"
 
@@ -106,13 +106,31 @@ Update_Shell(){
 Init_Shell(){
 	echo -e "安装必要组件"
 	yum -y update
-	yum -y install wget nano git unzip docker htop grv mtr
+	yum -y install wget nano git unzip htop grv mtr
+	
+	# docker
+	yum -y install docker
 	service docker start
 	systemctl enable docker
+	
+	# ssh
 	echo -e "写入ssh公钥"
 	cd /root
 	mkdir .ssh
 	wget --no-check-certificate -qO- -O /root/.ssh/authorized_keys ${github}/ssh_pub_keys
+	
+	# tmux
+	wget https://centos7.iuscommunity.org/ius-release.rpm
+	rpm -Uvh ius-release*rpm
+	rm -rm ius-release*rpm
+	yum -y install tmux2u
+	wget --no-check-certificate -qO- -O /root/.tmux.conf ${github}/tmux.conf
+
+	# neofetch
+	yum -y install epel-release dnf
+	dnf install dnf-plugins-core
+	dnf copr enable konimex/neofetch -y
+	dnf install neofetch -y
 }
 
 #更改ssh端口
