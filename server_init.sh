@@ -128,7 +128,7 @@ Init_Shell(){
 
 	# neofetch
 	yum -y install epel-release dnf
-	dnf install dnf-plugins-core
+	dnf install dnf-plugins-core -y
 	dnf copr enable konimex/neofetch -y
 	dnf install neofetch -y
 }
