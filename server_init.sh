@@ -174,11 +174,11 @@ ZSH_install_Shell(){
 		yum -y install epel-release && yum -y install zsh
 		chsh -s /bin/zsh
 		sh -c "$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)"
-		git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-		git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+		# git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+		# git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 		rm -rf ~/.zshrc && rm -rf ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 		wget -N --no-check-certificate ${github}/.zshrc -O ~/.zshrc
-		wget -N --no-check-certificate ${github}/zsh-autosuggestions.zsh -O ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+		# wget -N --no-check-certificate ${github}/zsh-autosuggestions.zsh -O ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 		source ~/.zshrc
 		echo -e "zsh安装完成！"
 	elif [ ${input_a} == "n" ] ;then
