@@ -4,12 +4,12 @@ export PATH
 #=================================================
 #	System Required: CentOS 7+
 #	Description: 服务器初始化脚本
-#	Version: 0.4.7
+#	Version: 0.4.8
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
 
-sh_ver="0.4.7"
+sh_ver="0.4.8"
 github="https://raw.githubusercontent.com/mlch911/server_init/master"
 file="authorized_keys"
 
@@ -106,7 +106,7 @@ Update_Shell(){
 Init_Shell(){
 	echo -e "安装必要组件"
 	yum -y update
-	yum -y install wget nano git unzip htop grv mtr
+	yum -y install wget nano git unzip htop grv mtr mosh
 	
 	# docker
 	yum -y install docker
@@ -120,9 +120,9 @@ Init_Shell(){
 	wget --no-check-certificate -qO- -O /root/.ssh/authorized_keys ${github}/ssh_pub_keys
 	
 	# tmux
-	wget https://centos7.iuscommunity.org/ius-release.rpm
-	rpm -Uvh ius-release*rpm
-	rm -rm ius-release*rpm
+	yum install \
+	https://repo.ius.io/ius-release-el7.rpm \
+	https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 	yum -y install tmux2u
 	wget --no-check-certificate -qO- -O /root/.tmux.conf ${github}/tmux.conf
 
