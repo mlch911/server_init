@@ -2,14 +2,14 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
 #=================================================
-#	System Required: CentOS 7+
+#	System Required: CentOS 7
 #	Description: 服务器初始化脚本
-#	Version: 0.4.8
+#	Version: 0.4.9
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
 
-sh_ver="0.4.8"
+sh_ver="0.4.9"
 github="https://raw.githubusercontent.com/mlch911/server_init/master"
 file="authorized_keys"
 
@@ -106,7 +106,7 @@ Update_Shell(){
 Init_Shell(){
 	echo -e "安装必要组件"
 	yum -y update
-	yum -y install wget nano git unzip htop grv mtr mosh
+	yum -y install wget nano git unzip htop grv mtr mosh vim
 	
 	# docker
 	yum -y install docker
@@ -115,16 +115,18 @@ Init_Shell(){
 	
 	# ssh
 	echo -e "写入ssh公钥"
-	cd /root
+	cd $HOME
 	mkdir .ssh
-	wget --no-check-certificate -qO- -O /root/.ssh/authorized_keys ${github}/ssh_pub_keys
+	wget --no-check-certificate -qO- -O $HOME/.ssh/authorized_keys ${github}/ssh_pub_keys
 	
 	# tmux
 	yum install \
 	https://repo.ius.io/ius-release-el7.rpm \
 	https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 	yum -y install tmux2u
-	wget --no-check-certificate -qO- -O /root/.tmux.conf ${github}/tmux.conf
+	wget --no-check-certificate -qO- -O $HOME/.tmux.conf ${github}/.tmux.conf
+	mkdir .vim
+	wget --no-check-certificate -qO- -O $HOME/.vim/vimrc ${github}/vimrc
 
 	# neofetch
 	yum -y install epel-release dnf
