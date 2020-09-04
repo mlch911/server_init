@@ -125,6 +125,12 @@ Init_Shell(){
 	https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 	yum -y install tmux2u
 	wget --no-check-certificate -qO- -O $HOME/.tmux.conf ${github}/.tmux.conf
+	
+	# vim
+	rpm -Uvh http://mirror.ghettoforge.org/distributions/gf/gf-release-latest.gf.el7.noarch.rpm
+	rpm --import http://mirror.ghettoforge.org/distributions/gf/RPM-GPG-KEY-gf.el7
+	yum -y remove vim-minimal vim-common vim-enhanced sudo
+	yum -y --enablerepo=gf-plus install vim-enhanced sudo
 	mkdir .vim
 	wget --no-check-certificate -qO- -O $HOME/.vim/vimrc ${github}/vimrc
 
