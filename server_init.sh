@@ -106,7 +106,7 @@ Update_Shell(){
 Init_Shell(){
 	echo -e "安装必要组件"
 	yum -y update
-	yum -y install wget nano git unzip htop grv mtr mosh vim
+	yum -y install wget nano git unzip htop grv mtr mosh python3 nodejs
 	
 	# docker
 	yum -y install docker
@@ -126,13 +126,11 @@ Init_Shell(){
 	yum -y install tmux2u
 	wget --no-check-certificate -qO- -O $HOME/.tmux.conf ${github}/.tmux.conf
 	
-	# vim
-	rpm -Uvh http://mirror.ghettoforge.org/distributions/gf/gf-release-latest.gf.el7.noarch.rpm
-	rpm --import http://mirror.ghettoforge.org/distributions/gf/RPM-GPG-KEY-gf.el7
-	yum -y remove vim-minimal vim-common vim-enhanced sudo
-	yum -y --enablerepo=gf-plus install vim-enhanced sudo
-	mkdir .vim
-	wget --no-check-certificate -qO- -O $HOME/.vim/vimrc ${github}/vimrc
+	# nvim
+	pip3 install pynvim
+	npm install -g neovim
+	mkdir .config && mkdir .config/nvim
+	wget --no-check-certificate -qO- -O $HOME/.config/nvim/init.vim https://github.com/mlch911/nvim/raw/master/init.vim
 
 	# neofetch
 	yum -y install epel-release dnf
@@ -182,11 +180,11 @@ ZSH_install_Shell(){
 		yum -y install epel-release && yum -y install zsh
 		chsh -s /bin/zsh
 		sh -c "$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)"
-		# git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-		# git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 		rm -rf ~/.zshrc && rm -rf ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 		wget -N --no-check-certificate ${github}/.zshrc -O ~/.zshrc
-		# wget -N --no-check-certificate ${github}/zsh-autosuggestions.zsh -O ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+		wget --no-check-certificate http://mimosa-pudica.net/src/incr-0.2.zsh
+		mkdir ~/.oh-my-zsh/plugins/incr
+		mv incr-0.2.zsh ~/.oh-my-zsh/plugins/incr
 		source ~/.zshrc
 		echo -e "zsh安装完成！"
 	elif [ ${input_a} == "n" ] ;then
