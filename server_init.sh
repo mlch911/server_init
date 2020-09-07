@@ -4,13 +4,14 @@ export PATH
 #=================================================
 #	System Required: CentOS 7
 #	Description: 服务器初始化脚本
-#	Version: 0.4.9
+#	Version: 0.5.0
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
 
-sh_ver="0.4.9"
+sh_ver="0.5.0"
 github="https://raw.githubusercontent.com/mlch911/server_init/master"
+config_github="https://raw.githubusercontent.com/mlch911/shell_config/master"
 file="authorized_keys"
 
 Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Green_background_prefix="\033[42;37m" && Red_background_prefix="\033[41;37m" && Font_color_suffix="\033[0m"
@@ -124,13 +125,16 @@ Init_Shell(){
 	https://repo.ius.io/ius-release-el7.rpm \
 	https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 	yum -y install tmux2u
-	wget --no-check-certificate -qO- -O $HOME/.tmux.conf ${github}/.tmux.conf
 	
 	# nvim
+    yum -y install neovim
 	pip3 install pynvim
-	npm install -g neovim
+	npm i -g neovim
 	mkdir .config && mkdir .config/nvim
-	wget --no-check-certificate -qO- -O $HOME/.config/nvim/init.vim https://github.com/mlch911/nvim/raw/master/init.vim
+
+    # config
+    git clone https://github.com/mlch911/shell_config.git ~/.config/config
+    sh ~/.config/config/setup.sh
 
 	# neofetch
 	yum -y install epel-release dnf
@@ -176,15 +180,29 @@ SSH_port_change_Shell(){
 ZSH_install_Shell(){
 	read -p "是否安装zsh，输入n恢复默认shell :(y/n)" input_a
 	if [ ${input_a} == "y" ] ;then
-		yum -y install wget git nano
-		yum -y install epel-release && yum -y install zsh
-		chsh -s /bin/zsh
-		sh -c "$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)"
-		rm -rf ~/.zshrc && rm -rf ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-		wget -N --no-check-certificate ${github}/.zshrc -O ~/.zshrc
-		wget --no-check-certificate http://mimosa-pudica.net/src/incr-0.2.zsh
-		mkdir ~/.oh-my-zsh/plugins/incr
-		mv incr-0.2.zsh ~/.oh-my-zsh/plugins/incr
+		yum -y install wget git
+		yum -y install epel-release
+
+        # 安装zsh
+        yum install -y git make ncurses-devel gcc autoconf man
+        git clone -b zsh-5.7.1 https://github.com/zsh-users/zsh.git /tmp/zsh
+        cd /tmp/zsh
+        ./Util/preconfig
+        ./configure
+        make -j 20 install
+        echo /usr/local/bin/zsh | sudo tee -a /etc/shells
+        chsh -s /usr/local/bin/zsh
+
+        sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+        rm -rf ~/.zshrc && rm -rf ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+        # auto-fu.zsh
+        mkdir ~/.oh-my-zsh/custom/plugins
+        git clone https://github.com/hchbaw/auto-fu.zsh.git ~/.oh-my-zsh/custom/plugins/auto-fu
+        sh -c 'A=~/.oh-my-zsh/custom/plugins/auto-fu/auto-fu.zsh; (zsh -c "source $A ; auto-fu-zcompile $A ~/.zsh")'
+
+        sh $HOME/.config/config/setup.sh
+
 		source ~/.zshrc
 		echo -e "zsh安装完成！"
 	elif [ ${input_a} == "n" ] ;then
