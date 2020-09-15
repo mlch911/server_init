@@ -107,6 +107,7 @@ Update_Shell(){
 Init_Shell(){
 	echo -e "安装必要组件"
 	yum -y update
+    curl --silent --location https://rpm.nodesource.com/setup_10.x | bash -
 	yum -y install wget nano git unzip htop grv mtr mosh python3 nodejs
 	
 	# docker
@@ -127,14 +128,16 @@ Init_Shell(){
 	yum -y install tmux2u
 	
 	# nvim
+	wget --no-check-certificate -qO- -O /usr/local/bin/nvim https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+    chmod u+x /usr/local/bin/nvim
     yum -y install neovim
 	pip3 install pynvim
-	npm i -g neovim
+	npm i -g neovim yarn
 	mkdir .config && mkdir .config/nvim
 
     # config
     git clone https://github.com/mlch911/shell_config.git ~/.config/config
-    sh ~/.config/config/setup.sh
+    sh ~/.config/config/setup.sh --no-git-update
 
 	# neofetch
 	yum -y install epel-release dnf
