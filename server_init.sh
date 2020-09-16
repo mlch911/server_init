@@ -108,7 +108,10 @@ Init_Shell(){
 	echo -e "安装必要组件"
 	yum -y update
     curl --silent --location https://rpm.nodesource.com/setup_10.x | bash -
-	yum -y install wget nano git unzip htop grv mtr mosh python3 nodejs
+	yum -y install wget nano git unzip htop grv mtr mosh python3 nodejs centos-release-scl-rh
+    yum -y install rh-ruby27 rh-ruby27-ruby-devel
+    scl enable rh-ruby27 bash
+    gem install colorls
 	
 	# docker
 	yum -y install docker
@@ -118,22 +121,22 @@ Init_Shell(){
 	# ssh
 	echo -e "写入ssh公钥"
 	cd $HOME
-	mkdir .ssh
-	wget --no-check-certificate -qO- -O $HOME/.ssh/authorized_keys ${github}/ssh_pub_keys
+    createdir .ssh
+	wget --no-check-certificate -nv -O $HOME/.ssh/authorized_keys ${github}/ssh_pub_keys
 	
 	# tmux
-	yum install \
+	yum -y install \
 	https://repo.ius.io/ius-release-el7.rpm \
 	https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 	yum -y install tmux2u
 	
 	# nvim
-	wget --no-check-certificate -qO- -O /usr/local/bin/nvim https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+	wget --no-check-certificate -nv -T2 -t3 -O /usr/local/bin/nvim https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
     chmod u+x /usr/local/bin/nvim
-    yum -y install neovim
 	pip3 install pynvim
 	npm i -g neovim yarn
-	mkdir .config && mkdir .config/nvim
+    gem install neovim
+    createdir .config .config/nvim
 
     # config
     git clone https://github.com/mlch911/shell_config.git ~/.config/config
@@ -200,7 +203,7 @@ ZSH_install_Shell(){
         rm -rf ~/.zshrc && rm -rf ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
         # auto-fu.zsh
-        mkdir ~/.oh-my-zsh/custom/plugins
+        createdir ~/.oh-my-zsh/custom/plugins
         git clone https://github.com/hchbaw/auto-fu.zsh.git ~/.oh-my-zsh/custom/plugins/auto-fu
         sh -c 'A=~/.oh-my-zsh/custom/plugins/auto-fu/auto-fu.zsh; (zsh -c "source $A ; auto-fu-zcompile $A ~/.zsh")'
 
@@ -270,6 +273,16 @@ Firewalld_Shell(){
 	start_menu
 }
 
+#创建文件夹
+createdir() {
+    for dir in "$@"; do
+        if [ ! -d $dir ];then
+            mkdir $dir
+        else
+            echo 文件夹存在
+        fi
+    done
+}
 
 #############系统检测组件#############
 
