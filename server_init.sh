@@ -110,7 +110,15 @@ Init_Shell(){
     curl --silent --location https://rpm.nodesource.com/setup_10.x | bash -
 	yum -y install wget nano git unzip htop grv mtr mosh python3 nodejs centos-release-scl-rh
     yum -y install rh-ruby27 rh-ruby27-ruby-devel
-    scl enable rh-ruby27 bash
+    #scl enable rh-ruby27 bash
+    cat>/etc/profile.d/rh-ruby27.sh<<EOF
+#!/bin/bash
+source /opt/rh/rh-ruby27/enable
+export X_SCLS="`scl enable rh-ruby27 'echo $X_SCLS'`"
+export PATH=$PATH:/opt/rh/rh-ruby27/root/usr/local/bin
+EOF
+    source /opt/rh/rh-ruby27/enable
+
     gem install colorls
 	
 	# docker
