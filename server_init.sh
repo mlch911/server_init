@@ -4,12 +4,12 @@ export PATH
 #=================================================
 #	System Required: CentOS 7
 #	Description: 服务器初始化脚本
-#	Version: 0.5.0
+#	Version: 0.5.1
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
 
-sh_ver="0.5.0"
+sh_ver="0.5.1"
 github="https://raw.githubusercontent.com/mlch911/server_init/master"
 config_github="https://raw.githubusercontent.com/mlch911/shell_config/master"
 file="authorized_keys"
@@ -107,30 +107,26 @@ Update_Shell(){
 Init_Shell(){
 	echo -e "安装必要组件"
 	yum -y update
-    curl --silent --location https://rpm.nodesource.com/setup_10.x | bash -
-	yum -y install wget nano git unzip htop grv mtr mosh python3 nodejs centos-release-scl-rh
-    yum -y install rh-ruby27 rh-ruby27-ruby-devel
-    #scl enable rh-ruby27 bash
-    cat>/etc/profile.d/rh-ruby27.sh<<EOF
-#!/bin/bash
-source /opt/rh/rh-ruby27/enable
-export X_SCLS="`scl enable rh-ruby27 'echo $X_SCLS'`"
-export PATH=$PATH:/opt/rh/rh-ruby27/root/usr/local/bin
-EOF
-    source /opt/rh/rh-ruby27/enable
+	curl --silent --location https://rpm.nodesource.com/setup_14.x | bash -
+	yum -y install wget nano git unzip htop grv mtr mosh python3 nodejs
 
-    gem install colorls
-	
-	# docker
-	yum -y install docker
-	service docker start
-	systemctl enable docker
-	
 	# ssh
 	echo -e "写入ssh公钥"
 	cd $HOME
     createdir .ssh
 	wget --no-check-certificate -nv -O $HOME/.ssh/authorized_keys ${github}/ssh_pub_keys
+
+	# ruby && rvm
+	gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+	\curl -sSL https://get.rvm.io | bash -s stable
+	source  /etc/profile.d/rvm.sh
+	rvm install 2.7
+	gem install colorls
+	
+	# docker
+	yum -y install docker
+	service docker start
+	systemctl enable docker
 	
 	# tmux
 	yum -y install \
@@ -139,22 +135,28 @@ EOF
 	yum -y install tmux2u
 	
 	# nvim
+	yum -y remove vim
 	wget --no-check-certificate -nv -T2 -t3 -O /usr/local/bin/nvim https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-    chmod u+x /usr/local/bin/nvim
+	chmod u+x /usr/local/bin/nvim
 	pip3 install pynvim
 	npm i -g neovim yarn
-    gem install neovim
-    createdir .config .config/nvim
+	gem install neovim
+	yum --enablerepo=epel -y install fuse-sshfs
+	createdir .config .config/nvim
 
     # config
-    git clone https://github.com/mlch911/shell_config.git ~/.config/config
-    sh ~/.config/config/setup.sh --no-git-update
+	git clone https://github.com/mlch911/shell_config.git ~/.config/config
+	sh ~/.config/config/setup.sh --no-git-update
 
 	# neofetch
 	yum -y install epel-release dnf
 	dnf install dnf-plugins-core -y
 	dnf copr enable konimex/neofetch -y
 	dnf install neofetch -y
+	
+	echo -e "${Green_font_prefix}初始化完成!${Font_color_suffix}"
+	sleep 2s
+	start_menu
 }
 
 #更改ssh端口
