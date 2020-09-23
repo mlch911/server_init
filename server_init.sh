@@ -124,9 +124,13 @@ Init_Shell(){
 	gem install colorls
 	
 	# docker
-	yum -y install docker
-	service docker start
+	yum -y remove docker docker-common container-selinux docker-selinux docker-engine docker-engine-selinux
+	yum install -y yum-utils device-mapper-persistent-data lvm2 unzip
+	yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+	yum makecache fast
+	yum -y install docker-ce docker-compose
 	systemctl enable docker
+	systemctl start docker
 	
 	# tmux
 	yum -y install \
