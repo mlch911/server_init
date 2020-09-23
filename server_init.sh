@@ -154,9 +154,9 @@ Init_Shell(){
 	dnf copr enable konimex/neofetch -y
 	dnf install neofetch -y
 	
-	echo -e "${Green_font_prefix}初始化完成!${Font_color_suffix}"
-	sleep 2s
-	start_menu
+	ZSH_install_Shell
+
+	askIfExitOrMenu "${Info} 初始化完成!"
 }
 
 #更改ssh端口
@@ -188,16 +188,15 @@ SSH_port_change_Shell(){
 		if [ ${input_c} == "y" ] ;then
 			systemctl restart sshd.service
 		fi
-		echo -e "ssh端口更改完成！"
+		askIfExitOrMenu "${Info} ssh端口更改完成！"
 	fi
 }
 
 #zsh安装
 ZSH_install_Shell(){
-	read -p "是否安装zsh，输入n恢复默认shell :(y/n)" input_a
+	read -p "是否安装zsh，输入${Green_font_prefix}y${Font_color_suffix}安装，输入${Red_font_prefix}n${Font_color_suffix}恢复默认shell，输入其余任意键退出:(y/n))" input_a
 	if [ ${input_a} == "y" ] ;then
-		yum -y install wget git
-		yum -y install epel-release
+		yum -y install wget git epel-release
 
         # 安装zsh
         yum install -y git make ncurses-devel gcc autoconf man
@@ -220,7 +219,7 @@ ZSH_install_Shell(){
         sh $HOME/.config/config/setup.sh
 
 		source ~/.zshrc
-		echo -e "zsh安装完成！"
+		askIfExitOrMenu "${Info} zsh安装完成！"
 	elif [ ${input_a} == "n" ] ;then
 		cat /etc/shells
 		chsh -s /bin/bash
@@ -229,13 +228,21 @@ ZSH_install_Shell(){
 
 #开放防火墙
 Firewalld_Shell(){
+	if [[ $(command -v firewall-cmd) ]]; then
+		has_firewall=true
+	elif [[ $(command -v iptables) ]]; then
+		has_iptables=true
+	else
+		echo -e "
+		没装防火墙，开放个屁哦~~~
+		"
+		sleep 2s
+		start_menu
+		return
+	fi
+
 	clear
-	echo -e " 请选择防火墙类型 :
-	${Green_font_prefix}1.${Font_color_suffix} firewalld
-	${Green_font_prefix}2.${Font_color_suffix} iptables
-	————————————————————————————————"
-	read -p "请输入数字 :" num
-	if [ ${num} == "1" ] ;then
+	if $has_firewall ;then
 		echo -e " firewalld :
 		${Green_font_prefix}1.${Font_color_suffix} 单端口
 		${Green_font_prefix}2.${Font_color_suffix} 端口段
@@ -253,7 +260,7 @@ Firewalld_Shell(){
 			firewall-cmd --permanent --zone=public --add-port=${port_b}-${port_c}/udp
 			firewall-cmd --reload
 		fi
-	elif [ ${num} == "2" ] ;then
+	elif $has_iptables ;then
 		echo -e " iptables :
 		${Green_font_prefix}1.${Font_color_suffix} 单端口
 		${Green_font_prefix}2.${Font_color_suffix} 端口段
@@ -274,13 +281,7 @@ Firewalld_Shell(){
 			service iptables restart
 		fi
 	fi
-	echo -e " ${Info} 开放防火墙运行完成！"
-	read -p "是否退出脚本 :(y/n)" firewalld_input
-	if [ ${firewalld_input} == "y" ] ;then
-		exit 1
-	fi
-	sleep 2s
-	start_menu
+	askIfExitOrMenu "${Info} 开放防火墙运行完成！"
 }
 
 #创建文件夹
@@ -292,6 +293,16 @@ createdir() {
             echo 文件夹存在
         fi
     done
+}
+
+askIfExitOrMenu() {
+	echo -e $1
+	read -p "是否退出脚本 :(y/n)" firewalld_input
+	if [ ${firewalld_input} == "y" ] ;then
+		exit 1
+	fi
+	sleep 2s
+	start_menu
 }
 
 #############系统检测组件#############
