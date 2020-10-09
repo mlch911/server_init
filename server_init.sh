@@ -54,7 +54,13 @@ start_menu() {
 		SSH_port_change_Shell
 		;;
 	3)
-		ZSH_install_Shell
+		read -p "是否安装zsh，输入${Green_font_prefix}y${Font_color_suffix}安装，输入${Red_font_prefix}n${Font_color_suffix}恢复默认shell，输入其余任意键退出:(y/n))" input_a
+		if [ ${input_a} == "y" ]; then
+			install_zsh
+		elif [ ${input_a} == "n" ]; then
+			cat /etc/shells
+			chsh -s /bin/bash
+		fi
 		;;
 	4)
 		Firewalld_Shell
@@ -119,24 +125,16 @@ Init_Shell() {
 	install_tmux
 	install_nvim
 	install_neofetch
+	install_docker
 
 	gem install colorls
-
-	# docker
-	yum -y remove docker docker-common container-selinux docker-selinux docker-engine docker-engine-selinux
-	yum install -y yum-utils device-mapper-persistent-data lvm2 unzip
-	yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-	yum makecache fast
-	yum -y install docker-ce docker-compose
-	systemctl enable docker
-	systemctl start docker
 
 	# config
 	createdir .config .config/nvim
 	git clone https://github.com/mlch911/shell_config.git ~/.config/config
 	sh ~/.config/config/setup.sh --no-git-update
 
-	ZSH_install_Shell
+	install_zsh
 
 	askIfExitOrMenu "${Info} 初始化完成!"
 }
@@ -175,46 +173,39 @@ SSH_port_change_Shell() {
 }
 
 #zsh安装
-ZSH_install_Shell() {
-	read -p "是否安装zsh，输入${Green_font_prefix}y${Font_color_suffix}安装，输入${Red_font_prefix}n${Font_color_suffix}恢复默认shell，输入其余任意键退出:(y/n))" input_a
-	if [ ${input_a} == "y" ]; then
+install_zsh() {
+	case $release in
+	"centos")
+		yum -y install wget git epel-release
+		# 安装zsh
+		yum install -y git make ncurses-devel gcc autoconf man
+		git clone -b zsh-5.7.1 https://github.com/zsh-users/zsh.git /tmp/zsh
+		cd /tmp/zsh
+		./Util/preconfig
+		./configure
+		make -j 20 install
+		echo /usr/local/bin/zsh | sudo tee -a /etc/shells
+		;;
+	"debian" | "ubuntu")
+		apt -y install zsh
+		;;
+	*) ;;
 
-		case $release in
-		"centos")
-			yum -y install wget git epel-release
-			# 安装zsh
-			yum install -y git make ncurses-devel gcc autoconf man
-			git clone -b zsh-5.7.1 https://github.com/zsh-users/zsh.git /tmp/zsh
-			cd /tmp/zsh
-			./Util/preconfig
-			./configure
-			make -j 20 install
-			echo /usr/local/bin/zsh | sudo tee -a /etc/shells
-			;;
-		"debian" | "ubuntu")
-			apt -y install zsh
-			;;
-		*) ;;
+	esac
 
-		esac
+	chsh -s "$(which zsh)"
 
-		chsh -s "$(which zsh)"
+	rm -rf ~/.zshrc && rm -rf ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-		rm -rf ~/.zshrc && rm -rf ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+	# auto-fu.zsh
+	createdir ~/.oh-my-zsh/custom/plugins
+	git clone https://github.com/hchbaw/auto-fu.zsh.git ~/.oh-my-zsh/custom/plugins/auto-fu
+	sh -c 'A=~/.oh-my-zsh/custom/plugins/auto-fu/auto-fu.zsh; (zsh -c "source $A ; auto-fu-zcompile $A ~/.zsh")'
 
-		# auto-fu.zsh
-		createdir ~/.oh-my-zsh/custom/plugins
-		git clone https://github.com/hchbaw/auto-fu.zsh.git ~/.oh-my-zsh/custom/plugins/auto-fu
-		sh -c 'A=~/.oh-my-zsh/custom/plugins/auto-fu/auto-fu.zsh; (zsh -c "source $A ; auto-fu-zcompile $A ~/.zsh")'
+	sh $HOME/.config/config/setup.sh
 
-		sh $HOME/.config/config/setup.sh
-
-		source ~/.zshrc
-		askIfExitOrMenu "${Info} zsh安装完成！"
-	elif [ ${input_a} == "n" ]; then
-		cat /etc/shells
-		chsh -s /bin/bash
-	fi
+	source ~/.zshrc
+	askIfExitOrMenu "${Info} zsh安装完成！"
 }
 
 #开放防火墙
@@ -345,7 +336,7 @@ install_nvim() {
 		;;
 	"debian" | "ubuntu")
 		apt -y remove vim
-		
+		apt -y install python3-pip
 		;;
 	*) ;;
 	esac
@@ -389,6 +380,26 @@ install_neofetch() {
 	esac
 }
 
+# 安装docker
+install_docker() {
+	case $release in
+	"centos")
+		yum -y remove docker docker-common container-selinux docker-selinux docker-engine docker-engine-selinux
+		yum install -y yum-utils device-mapper-persistent-data lvm2 unzip
+		yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+		yum makecache fast
+		yum -y install docker-ce docker-compose
+		;;
+	"debian" | "ubuntu")
+		apt -y install docker
+		;;
+	*) ;;
+	esac
+	systemctl enable docker
+	systemctl start docker
+
+}
+
 #############系统检测组件#############
 
 #检查系统
@@ -413,9 +424,9 @@ check_sys() {
 #安装包
 install_package() {
 	if [ $release == "centos" ]; then
-		yum -y install "$*"
+		yum -y install "$@"
 	elif [ $release == "debian" ]; then
-		apt -y install "$*"
+		apt -y install "$@"
 	fi
 }
 
