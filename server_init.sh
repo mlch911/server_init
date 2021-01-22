@@ -131,6 +131,7 @@ Init_Shell() {
 	install_neofetch
 	install_docker
 	install_mosh
+	install_lazygit
 
 	gem install colorls
 
@@ -429,6 +430,23 @@ install_mosh() {
 	;;
 	esac
 }
+
+#lazygit
+install_lazygit() {
+	case $release in
+	"centos")
+		dnf copr enable atim/lazygit -y
+		dnf install lazygit
+		;;
+	"debian" | "ubuntu")
+		add-apt-repository ppa:lazygit-team/release
+		apt-get update
+		apt-get install lazygit
+		;;
+	*)	;;
+	esac
+}
+
 
 #############系统检测组件#############
 
