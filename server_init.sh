@@ -203,11 +203,6 @@ install_zsh() {
 
 	rm -rf ~/.zshrc && rm -rf ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-	# auto-fu.zsh
-	createdir ~/.oh-my-zsh/custom/plugins
-	git clone https://github.com/hchbaw/auto-fu.zsh.git ~/.oh-my-zsh/custom/plugins/auto-fu
-	sh -c 'A=~/.oh-my-zsh/custom/plugins/auto-fu/auto-fu.zsh; (zsh -c "source $A ; auto-fu-zcompile $A ~/.zsh")'
-
 	sh $HOME/.config/config/setup.sh
 
 	source ~/.zshrc
@@ -436,7 +431,7 @@ install_lazygit() {
 	case $release in
 	"centos")
 		dnf copr enable atim/lazygit -y
-		dnf install lazygit
+		dnf install lazygit -y
 		;;
 	"debian" | "ubuntu")
 		add-apt-repository ppa:lazygit-team/release
