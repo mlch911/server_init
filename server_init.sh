@@ -5,7 +5,7 @@ export PATH
 #=================================================
 #	System Required: CentOS 7
 #	Description: 服务器初始化脚本
-#	Version: 0.6.0
+#	Version: 1.0.0
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
@@ -115,7 +115,10 @@ Update_Shell() {
 Init_Shell() {
 	echo -e "安装必要组件"
 	update_package
-	install_package wget nano git unzip htop mtr python3 sudo
+	install_package curl wget nano git unzip htop mtr python3 sudo jq
+
+	create_user
+	install_brew
 
 	# ssh
 	echo -e "写入ssh公钥"
@@ -126,6 +129,7 @@ Init_Shell() {
 	# 安装依赖
 	install_node
 	install_ruby
+	install_python
 	install_tmux
 	install_nvim
 	install_neofetch
@@ -138,39 +142,71 @@ Init_Shell() {
 	# config
 	createdir .config .config/nvim
 	git clone https://github.com/mlch911/shell_config.git ~/.config/config
-	sh ~/.config/config/setup.sh --no-git-update
+	bash ~/.config/config/setup.sh --no-git-update
 
 	install_zsh
 
 	askIfExitOrMenu "${Info} 初始化完成!"
 }
 
+create_user() {
+	gourpadd admin
+	useradd -r -m mlch911 -p mlch1995123 -d /home/mlch911 -s /bin/bash -g root -G admin
+	su mlch911
+	# sudo chmod +w /etc/sudoers
+	# echo "mlch911 ALL=(ALL:ALL) ALL" >> /etc/sudoers
+	# echo "mlch911 ALL=(ALL) ALL" >> /etc/sudoers
+	# sudo chmod -w /etc/sudoers
+}
+
+install_brew() {
+	if [ ${ChinaFix} == true ]; then
+		if [[ "$(uname -s)" == "Linux" ]]; then BREW_TYPE="linuxbrew"; else BREW_TYPE="homebrew"; fi
+		export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
+		export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/${BREW_TYPE}-core.git"
+		export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/linuxbrew-bottles/bottles"
+		git clone --depth=1 https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/install.git brew-install
+		/bin/bash brew-install/install.sh
+		rm -rf brew-install
+	else
+		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	fi
+
+	echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/mlch911/.profile
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+	test -d ~/.linuxbrew && eval $(~/.linuxbrew/bin/brew shellenv)
+	test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+	test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.bash_profile
+	echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.profile
+}
+
 #更改ssh端口
 SSH_port_change_Shell() {
-	read -p "是否更改ssh端口 :(y/n)" input_a
-	if [ ${input_a} == "y" ]; then
+	read -rp "是否更改ssh端口 :(y/n)" input_a
+	if [ "${input_a}" == "y" ]; then
 		cd /etc/ssh/
-		read -p "新的ssh端口 :" ssh_port
+		read -rp "新的ssh端口 :" ssh_port
 		sed -i "17c Port ${ssh_port}" sshd_config
-		read -p "修改完成，是否开放防火墙 :(y/n)" input_b
-		if [ ${input_b} == "y" ]; then
+		read -rp "修改完成，是否开放防火墙 :(y/n)" input_b
+		if [ "${input_b}" == "y" ]; then
 			echo -e " 请选择防火墙类型 :
 			${Green_font_prefix}1.${Font_color_suffix} firewalld
 			${Green_font_prefix}2.${Font_color_suffix} iptables
             ————————————————————————————————"
-			read -p "请输入数字 :" num
-			if [ ${num} == "1" ]; then
+			read -rp "请输入数字 :" num
+			if [ "${num}" == "1" ]; then
 				firewall-cmd --permanent --zone=public --add-port=${ssh_port}/tcp
 				firewall-cmd --permanent --zone=public --add-port=${ssh_port}/udp
 				firewall-cmd --reload
-			elif [ ${num} == "2" ]; then
+			elif [ "${num}" == "2" ]; then
 				iptables -A INPUT -p tcp --dport 21 -j ACCEPT
 				iptables -A INPUT -p udp --dport 21 -j ACCEPT
 				service iptables save
 				service iptables restart
 			fi
 		fi
-		read -p "是否重启ssh服务 :(y/n)" input_c
+		read -rp "是否重启ssh服务 :(y/n)" input_c
 		if [ ${input_c} == "y" ]; then
 			systemctl restart sshd.service
 		fi
@@ -186,7 +222,7 @@ install_zsh() {
 		# 安装zsh
 		yum install -y git make ncurses-devel gcc autoconf man
 		git clone -b zsh-5.7.1 https://github.com/zsh-users/zsh.git /tmp/zsh
-		cd /tmp/zsh
+		cd /tmp/zsh || return
 		./Util/preconfig
 		./configure
 		make -j 20 install
@@ -200,12 +236,23 @@ install_zsh() {
 	esac
 
 	chsh -s "$(which zsh)"
-
 	rm -rf ~/.zshrc && rm -rf ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-
-	sh $HOME/.config/config/setup.sh
-
+	bash "$HOME"/.config/config/setup.sh
 	source ~/.zshrc
+
+	if [ ${ChinaFix} == true ]; then
+		#LinuxBrew
+		test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
+		test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+		test -r ~/.bash_profile && echo "eval \"\$($(brew --prefix)/bin/brew shellenv)\"" >> ~/.bash_profile
+		test -r ~/.profile && echo "eval \"\$($(brew --prefix)/bin/brew shellenv)\"" >> ~/.profile
+		test -r ~/.zprofile && echo "eval \"\$($(brew --prefix)/bin/brew shellenv)\"" >> ~/.zprofile
+		#Linuxbrew-bottles
+		test -r ~/.bash_profile && echo 'export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/linuxbrew-bottles/bottles"' >> ~/.bash_profile
+		test -r ~/.profile && echo 'export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/linuxbrew-bottles/bottles"' >> ~/.profile
+		test -r ~/.zprofile && echo 'export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/linuxbrew-bottles/bottles"' >> ~/.zprofile
+	fi
+
 	askIfExitOrMenu "${Info} zsh安装完成！"
 }
 
@@ -230,15 +277,15 @@ Firewalld_Shell() {
 		${Green_font_prefix}1.${Font_color_suffix} 单端口
 		${Green_font_prefix}2.${Font_color_suffix} 端口段
         ————————————————————————————————"
-		read -p "请输入数字 :" num
-		if [ ${num} == "1" ]; then
+		read -rp "请输入数字 :" num
+		if [ "${num}" == "1" ]; then
 			read -p " 开放防火墙端口为 :" port_a
 			firewall-cmd --permanent --zone=public --add-port=${port_a}/tcp
 			firewall-cmd --permanent --zone=public --add-port=${port_a}/udp
 			firewall-cmd --reload
-		elif [ ${num} == "2" ]; then
-			read -p " 开放防火墙端口从 :" port_b
-			read -p " 开放防火墙端口到 :" port_c
+		elif [ "${num}" == "2" ]; then
+			read -rp " 开放防火墙端口从 :" port_b
+			read -rp " 开放防火墙端口到 :" port_c
 			firewall-cmd --permanent --zone=public --add-port=${port_b}-${port_c}/tcp
 			firewall-cmd --permanent --zone=public --add-port=${port_b}-${port_c}/udp
 			firewall-cmd --reload
@@ -248,16 +295,16 @@ Firewalld_Shell() {
 		${Green_font_prefix}1.${Font_color_suffix} 单端口
 		${Green_font_prefix}2.${Font_color_suffix} 端口段
         ————————————————————————————————"
-		read -p "请输入数字 :" num
-		if [ ${num} == "1" ]; then
-			read -p " 开放防火墙端口为 :" port_a
+		read -rp "请输入数字 :" num
+		if [ "${num}" == "1" ]; then
+			read -rp " 开放防火墙端口为 :" port_a
 			iptables -A INPUT -p tcp --dport ${port_a} -j ACCEPT
 			iptables -A INPUT -p udp --dport ${port_a} -j ACCEPT
 			service iptables save
 			service iptables restart
-		elif [ ${num} == "2" ]; then
-			read -p " 开放防火墙端口从 :" port_b
-			read -p " 开放防火墙端口到 :" port_c
+		elif [ "${num}" == "2" ]; then
+			read -rp " 开放防火墙端口从 :" port_b
+			read -rp " 开放防火墙端口到 :" port_c
 			iptables -A INPUT -p tcp --dport ${port_b}:${port_c} -j ACCEPT
 			iptables -A INPUT -p udp --dport ${port_b}:${port_c} -j ACCEPT
 			service iptables save
@@ -280,7 +327,7 @@ createdir() {
 
 askIfExitOrMenu() {
 	echo -e "$1"
-	read -p "是否退出脚本 :(y/n)" firewalld_input
+	read -rp "是否退出脚本 :(y/n)" firewalld_input
 	if [ "${firewalld_input}" == "y" ]; then
 		exit 1
 	fi
@@ -291,59 +338,44 @@ askIfExitOrMenu() {
 #############安装组件#############
 # 安装NodeJS
 install_node() {
-	case $release in
-	"centos")
-		curl -sL https://rpm.nodesource.com/setup_12.x | bash -
-		yum clean all && sudo yum makecache fast
-		yum install -y gcc-c++ make
-		yum install -y nodejs
-		;;
-	"debian" | "ubuntu")
-		apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates
-		curl -sL https://deb.nodesource.com/setup_12.x | bash -
-		apt -y install nodejs
-		;;
-	*)
-		echo "安装NodeJS失败"
-		;;
-	esac
+	brew install node@14
 }
 
 # 安装Ruby&RVM
 install_ruby() {
 	case $release in
-	# "centos")
-
-	# 	;;
-	# "debian" | "ubuntu")
-
-	# 	;;
 	*)
-		gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
-		\curl -sSL https://get.rvm.io | sudo bash -s stable --ruby
+		# install_package gpg2
+		# gpg2 --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+		command curl -sSL https://rvm.io/mpapis.asc | gpg2 --import -
+    	command curl -sSL https://rvm.io/pkuczynski.asc | gpg2 --import -
+		\curl -sSL https://get.rvm.io | sudo bash -s stable
 		source /etc/profile.d/rvm.sh
+
+		echo "ruby_url=https://cache.ruby-china.com/pub/ruby" > ~/.rvm/user/db
+		
 		user="$(whoami)"
 		sudo usermod -a -G rvm $user
+		rvm install 2.7
+		if [ ${ChinaFix} == true ]; then
+			gem sources --add https://mirrors.tuna.tsinghua.edu.cn/rubygems/ --remove https://rubygems.org/
+		fi
 		;;
 	esac
 }
 
+# 安装Python
+install_python() {
+	brew install python3
+	if [ ${ChinaFix} == true ]; then
+		pip3 install pip -U
+		pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+	fi
+}
+
 # 安装NeoVim
 install_nvim() {
-	case $release in
-	"centos")
-		yum -y remove vim
-		yum --enablerepo=epel -y install fuse-sshfs
-		;;
-	"debian" | "ubuntu")
-		apt -y remove vim
-		apt -y install python3-pip
-		;;
-	*) ;;
-	esac
-	wget --no-check-certificate -nv -T2 -t3 -O /usr/local/bin/nvim https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-	chmod u+x /usr/local/bin/nvim
-
+	brew install neovim
 	pip3 install pynvim
 	npm i -g neovim yarn
 	gem install neovim
@@ -351,95 +383,45 @@ install_nvim() {
 
 # 安装tmux
 install_tmux() {
-	case $release in
-	"centos")
-		yum -y install \
-			https://repo.ius.io/ius-release-el7.rpm \
-			https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-		yum -y install tmux2u
-		;;
-	"debian" | "ubuntu")
-		apt -y install tmux
-		;;
-	*) ;;
-	esac
+	brew install tmux
 }
 
 # 安装NeoFetch
 install_neofetch() {
-	case $release in
-	"centos")
-		yum -y install epel-release dnf
-		dnf install dnf-plugins-core -y
-		dnf copr enable konimex/neofetch -y
-		dnf install neofetch -y
-		;;
-	"debian" | "ubuntu")
-		apt -y install neofetch
-		;;
-	*) ;;
-	esac
+	brew install neofetch
 }
 
 # 安装docker
 install_docker() {
 	case $release in
 	"centos")
-		yum -y remove docker docker-common container-selinux docker-selinux docker-engine docker-engine-selinux
-		yum install -y yum-utils device-mapper-persistent-data lvm2 unzip
-		yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-		yum makecache fast
-		yum -y install docker-ce docker-compose
+		sudo yum -y remove docker docker-common container-selinux docker-selinux docker-engine docker-engine-selinux
+		sudo yum install -y yum-utils device-mapper-persistent-data lvm2 unzip
+		sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+		sudo yum makecache fast
+		sudo yum -y install docker-ce docker-compose
 		;;
 	"debian" | "ubuntu")
-		apt -y install docker
+		sudo apt-get remove docker docker-engine docker.io containerd runc
+		curl -fsSL https://get.docker.com | sudo bash -s docker
+		sudo groupadd docker
+		sudo usermod -aG docker $USER
 		;;
 	*) ;;
 	esac
-	systemctl enable docker
-	systemctl start docker
+	brew install docker-compose
+	sudo systemctl enable docker
+	sudo systemctl start docker
 }
 
 # By Installing From Source, it can support true color.
 install_mosh() {
-	case $release in
-	#"centos")
-		#;;
-	#"debian" | "ubuntu")
-		#;;
-	*)
-		git clone https://github.com/mobile-shell/mosh
-		cd mosh
-		./autogen.sh
-		./configure
-		make
-		make install
-		if [[ $(command -v mosh) ]]; then
-			cd $HOME
-			rm -rf ./mosh
-		else
-			echo -e "
-			${Error} 安装Mosh失败~~~
-			"
-		fi
-	;;
-	esac
+	brew install mosh
 }
 
 #lazygit
 install_lazygit() {
-	case $release in
-	"centos")
-		dnf copr enable atim/lazygit -y
-		dnf install lazygit -y
-		;;
-	"debian" | "ubuntu")
-		add-apt-repository ppa:lazygit-team/release
-		apt-get update
-		apt-get install lazygit
-		;;
-	*)	;;
-	esac
+	brew install lazygit
 }
 
 
@@ -500,10 +482,20 @@ check_version() {
 	fi
 }
 
+check_country() {
+	if [ "$(curl -s http://ip-api.com/json | jq ".countryCode")" == "CN" ]; then
+		read -rp "检测到中国IP，是否修改为国内源 :(y/n, 默认为修改)" input_a
+		if [ "${input_a}" != "n" ]; then
+			ChinaFix=true
+		fi
+	fi
+}
+
 #############系统检测组件#############
 
 check_sys
 check_version
+check_country
 case $release in
 "centos" | "debian" | "ubuntu")
 	start_menu
