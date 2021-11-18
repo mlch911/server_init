@@ -430,10 +430,10 @@ install_lazygit() {
 #检查系统
 check_sys() {
 
-	if ["$(uname)"=="Darwin"]; then
+	if [ "$(uname)" == "Darwin" ]; then
 		os = 'mac'
 		release = ''
-	elif ["$(expr substr $(uname -s) 1 5)"=="Linux"]; then
+	elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
 		os = 'Linux'
 		if [[ -f /etc/redhat-release ]]; then
 			release="centos"
@@ -450,7 +450,7 @@ check_sys() {
 		elif cat /proc/version | grep -q -E -i "centos|red hat|redhat"; then
 			release="centos"
 		fi
-	elif ["$(expr substr $(uname -s) 1 10)"=="MINGW32_NT"]; then
+	elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
 		os = 'win'
 		release = ''
 	fi
@@ -458,11 +458,15 @@ check_sys() {
 
 #安装包
 install_package() {
-	if [ $release == "centos" ]; then
+	case $release in
+	"centos")
 		yum -y install "$@"
-	elif [ $release == "debian" ]; then
+		;;
+	"debian" | "ubuntu")
 		apt -y install "$@"
-	fi
+		;;
+	*) ;;
+	esac
 }
 
 update_package() {
