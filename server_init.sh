@@ -5,12 +5,12 @@ export PATH
 #=================================================
 #	System Required: CentOS 7
 #	Description: 服务器初始化脚本
-#	Version: 0.6.0
+#	Version: 0.6.1
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
 
-sh_ver="0.6.0"
+sh_ver="0.6.1"
 github="https://raw.githubusercontent.com/mlch911/server_init/master"
 config_github="https://raw.githubusercontent.com/mlch911/shell_config/master"
 
@@ -35,7 +35,7 @@ start_menu() {
 	 ${Green_font_prefix}2.${Font_color_suffix} 更改ssh端口
 	 ${Green_font_prefix}3.${Font_color_suffix} 安装zsh
 	 ${Green_font_prefix}4.${Font_color_suffix} 开放防火墙
-	 ${Green_font_prefix}5.${Font_color_suffix} 待添加
+	 ${Green_font_prefix}5.${Font_color_suffix} 更新 SSH Public Key
 	 ${Green_font_prefix}6.${Font_color_suffix} 待添加
 	 ${Green_font_prefix}7.${Font_color_suffix} 退出脚本
     ————————————————————————————————" && echo
@@ -70,6 +70,9 @@ start_menu() {
 		Firewalld_Shell
 		;;
 	5)
+		Update_SSH_Public_Key
+		echo -e "更新完成"
+		sleep 2s
 		start_menu
 		;;
 	6)
@@ -118,10 +121,7 @@ Init_Shell() {
 	install_package wget nano git unzip htop mtr python3 sudo
 
 	# ssh
-	echo -e "写入ssh公钥"
-	cd $HOME || return
-	createdir .ssh
-	wget --no-check-certificate -nv -O $HOME/.ssh/authorized_keys ${github}/ssh_pub_keys
+	Update_SSH_Public_Key
 
 	# 安装依赖
 	install_node
@@ -143,6 +143,13 @@ Init_Shell() {
 	install_zsh
 
 	askIfExitOrMenu "${Info} 初始化完成!"
+}
+
+Update_SSH_Public_Key() {
+	echo -e "写入ssh公钥"
+	cd $HOME || return
+	createdir .ssh
+	wget --no-check-certificate -nv -O $HOME/.ssh/authorized_keys ${github}/ssh_pub_keys
 }
 
 #更改ssh端口
