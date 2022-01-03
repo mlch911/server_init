@@ -150,7 +150,7 @@ Init_Shell() {
 }
 
 create_user() {
-	gourpadd admin
+	groupadd admin
 	useradd -r -m mlch911 -p mlch1995123 -d /home/mlch911 -s /bin/bash -g root -G admin
 	su mlch911
 	# sudo chmod +w /etc/sudoers
@@ -172,13 +172,12 @@ install_brew() {
 		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 	fi
 
-	echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/mlch911/.profile
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-
-	test -d ~/.linuxbrew && eval $(~/.linuxbrew/bin/brew shellenv)
-	test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+    eval "$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 	test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.bash_profile
 	echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.profile
+
+	sudo install_package build-essential
+	brew install gcc
 }
 
 #更改ssh端口
@@ -243,7 +242,7 @@ install_zsh() {
 	if [ ${ChinaFix} == true ]; then
 		#LinuxBrew
 		test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
-		test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+		test -d ${HOMEBREW_PREFIX} && eval "$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
 		test -r ~/.bash_profile && echo "eval \"\$($(brew --prefix)/bin/brew shellenv)\"" >> ~/.bash_profile
 		test -r ~/.profile && echo "eval \"\$($(brew --prefix)/bin/brew shellenv)\"" >> ~/.profile
 		test -r ~/.zprofile && echo "eval \"\$($(brew --prefix)/bin/brew shellenv)\"" >> ~/.zprofile
@@ -351,13 +350,12 @@ install_ruby() {
     	command curl -sSL https://rvm.io/pkuczynski.asc | gpg2 --import -
 		\curl -sSL https://get.rvm.io | sudo bash -s stable
 		source /etc/profile.d/rvm.sh
-
-		echo "ruby_url=https://cache.ruby-china.com/pub/ruby" > ~/.rvm/user/db
 		
 		user="$(whoami)"
 		sudo usermod -a -G rvm $user
 		rvm install 2.7
 		if [ ${ChinaFix} == true ]; then
+			# echo "ruby_url=https://cache.ruby-china.com/pub/ruby" > ~/.rvm/user/db
 			gem sources --add https://mirrors.tuna.tsinghua.edu.cn/rubygems/ --remove https://rubygems.org/
 		fi
 		;;
@@ -515,6 +513,6 @@ case $release in
 	start_menu
 	;;
 *)
-	[[ ${release} != "centos" ]] && echo -e "${Error} 本脚本不支持当前系统 ${release} !" && exit 1
+	echo -e "${Error} 本脚本不支持当前系统 ${release} !" && exit 1
 	;;
 esac
