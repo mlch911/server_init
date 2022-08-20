@@ -300,15 +300,15 @@ askIfExitOrMenu() {
 install_node() {
 	case $release in
 	"centos")
-		curl -sL https://rpm.nodesource.com/setup_12.x | bash -
+		curl -fsSL https://rpm.nodesource.com/setup_16.x | sudo bash -
 		yum clean all && sudo yum makecache fast
 		yum install -y gcc-c++ make
 		yum install -y nodejs
 		;;
 	"debian" | "ubuntu")
 		apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates
-		curl -sL https://deb.nodesource.com/setup_12.x | bash -
-		apt -y install nodejs
+		curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+		sudo apt-get install -y nodejs
 		;;
 	*)
 		echo "安装NodeJS失败"
@@ -327,6 +327,8 @@ install_ruby() {
 	# 	;;
 	*)
 		gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+		command curl -sSL https://rvm.io/mpapis.asc | sudo gpg --import -
+    	command curl -sSL https://rvm.io/pkuczynski.asc | sudo gpg --import -
 		\curl -sSL https://get.rvm.io | sudo bash -s stable --ruby
 		source /etc/profile.d/rvm.sh
 		user="$(whoami)"
