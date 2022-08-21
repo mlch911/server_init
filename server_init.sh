@@ -5,12 +5,12 @@ export PATH
 #=================================================
 #	System Required: CentOS 7
 #	Description: 服务器初始化脚本
-#	Version: 0.6.1
+#	Version: 0.6.2
 #	Author: 壕琛
 #	Blog: http://mluoc.top/
 #=================================================
 
-sh_ver="0.6.1"
+sh_ver="0.6.2"
 github="https://raw.githubusercontent.com/mlch911/server_init/master"
 config_github="https://raw.githubusercontent.com/mlch911/shell_config/master"
 
