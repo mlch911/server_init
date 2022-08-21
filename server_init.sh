@@ -475,11 +475,15 @@ check_sys() {
 
 #安装包
 install_package() {
-	if [ $release == "centos" ]; then
+	case $release in
+	"centos")
 		yum -y install "$@"
-	elif [ $release == "debian" ]; then
+		;;
+	"debian" | "ubuntu")
 		apt -y install "$@"
-	fi
+		;;
+	*) ;;
+	esac
 }
 
 update_package() {
