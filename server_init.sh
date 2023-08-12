@@ -118,27 +118,29 @@ Update_Shell() {
 Init_Shell() {
 	echo -e "安装必要组件"
 	update_package
-	install_package wget nano git unzip htop mtr python3 sudo
+	install_package wget nano git unzip htop mtr python3 sudo curl
 
 	# ssh
 	Update_SSH_Public_Key
 
 	# 安装依赖
+	install_rust
+	install_joshuto
 	install_node
 	install_ruby
 	install_tmux
 	install_nvim
 	install_neofetch
 	install_docker
-	install_mosh
+	# install_mosh
 	install_lazygit
 
 	gem install colorls
 
 	# config
-	createdir .config .config/nvim
+	createdir .config .config/nvim .config/lazygit
 	git clone https://github.com/mlch911/shell_config.git ~/.config/config
-	sh ~/.config/config/setup.sh --no-git-update
+	bash ~/.config/config/setup.sh --no-git-update
 
 	install_zsh
 
@@ -451,6 +453,14 @@ install_lazygit() {
 	esac
 }
 
+#安装rust
+install_rust() {
+	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+}
+
+install_joshuto() {
+	cargo install joshuto
+}
 
 #############系统检测组件#############
 
