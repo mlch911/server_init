@@ -118,7 +118,7 @@ Update_Shell() {
 Init_Shell() {
 	echo -e "安装必要组件"
 	update_package
-	install_package wget nano git unzip htop mtr python3 sudo curl
+	install_package wget nano git unzip htop mtr python3 sudo curl ranger
 
 	# ssh
 	Update_SSH_Public_Key
