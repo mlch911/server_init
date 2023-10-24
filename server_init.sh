@@ -45,6 +45,11 @@ start_menu() {
 		Update_Shell
 	fi
 
+	if [[ ${release} == "ubuntu" && $(awk 'BEGIN {print ("'${release_version}'" >= "22.04")}') ]]; then
+		sed -i "s/#\$nrconf{kernelhints} = -1;/\$nrconf{kernelhints} = -1;/g" /etc/needrestart/needrestart.conf # 关闭App更新重启弹窗
+		sed -i "/#\$nrconf{restart} = 'i';/s/.*/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf	# 关闭KernelUpdate弹窗
+	fi
+
 	echo
 	read -p " 请输入数字 [0-8]:" num
 	case "$num" in
@@ -480,12 +485,14 @@ check_sys() {
 		release="debian"
 	elif cat /etc/issue | grep -q -E -i "ubuntu"; then
 		release="ubuntu"
+		release_version=$(lsb_release -sr)
 	elif cat /etc/issue | grep -q -E -i "centos|red hat|redhat"; then
 		release="centos"
 	elif cat /proc/version | grep -q -E -i "debian"; then
 		release="debian"
 	elif cat /proc/version | grep -q -E -i "ubuntu"; then
 		release="ubuntu"
+		release_version=$(lsb_release -sr)
 	elif cat /proc/version | grep -q -E -i "centos|red hat|redhat"; then
 		release="centos"
 	fi
