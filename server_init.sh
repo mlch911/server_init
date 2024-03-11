@@ -458,6 +458,7 @@ install_lazygit() {
 		dnf install lazygit -y
 		;;
 	"debian" | "ubuntu")
+		install_package software-properties-common
 		add-apt-repository ppa:lazygit-team/release
 		apt-get update
 		install_package lazygit
