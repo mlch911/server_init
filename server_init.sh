@@ -459,8 +459,8 @@ install_lazygit() {
 		;;
 	"debian" | "ubuntu")
 		install_package software-properties-common
-		add-apt-repository ppa:lazygit-team/release
-		apt-get update
+		# add-apt-repository ppa:lazygit-team/release
+		# apt-get update
 		install_package lazygit
 		;;
 	*)	;;
